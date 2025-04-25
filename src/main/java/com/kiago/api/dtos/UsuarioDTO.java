@@ -1,0 +1,48 @@
+package com.kiago.api.dtos;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.*;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class UsuarioDTO {
+
+
+    private Long id;
+
+    @NotBlank(message = "El nombre es obligatorio")
+    private String name;
+
+    @Email(message = "Debe ser un correo válido")
+    @NotBlank(message = "El email es obligatorio")
+    private String email;
+
+    @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
+    private String password;
+
+    public UsuarioDTO(String name, String email, String password) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+}
