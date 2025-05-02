@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface IPlaceRepository extends JpaRepository<Place, Long> {
+    @Override
+    boolean existsById(Long aLong);
 }

@@ -13,17 +13,19 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/places")
 public class PlaceController {
+    private final PlaceService placeService;
 
-    @Autowired
-    private PlaceService placeService;
+    public PlaceController(PlaceService placeService) {
+        this.placeService = placeService;
+    }
 
     @GetMapping
-    public List<PlaceDTO> getAllPlaces() {
+    public ResponseEntity<?> getAllPlaces() {
         return placeService.getAllPlaces();
     }
 
     @GetMapping("/{id}")
-    public PlaceDTO getPlaceById(@PathVariable Long id) {
+    public ResponseEntity<?> getPlaceById(@PathVariable Long id) {
         return placeService.getPlaceById(id);
     }
 
@@ -32,13 +34,13 @@ public class PlaceController {
         return placeService.createPlace(placeDTO);
     }
 
-    @DeleteMapping("/{id}")
-    public void deletePlace(@PathVariable Long placeId, Long usuarioId) {
-        placeService.deletePlace(placeId,usuarioId);
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updatePlace(@PathVariable Long id, @RequestBody PlaceDTO placeDTO) {
+        return placeService.updatePlace(id, placeDTO);
     }
 
-    @PutMapping("/{id}")
-    public Place updatePlace(@PathVariable Long id, @RequestBody Place placeDetails) {
-        return placeService.updatePlace(id, placeDetails);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deletePlace(@PathVariable Long id) {
+        return placeService.deletePlace(id);
     }
 }

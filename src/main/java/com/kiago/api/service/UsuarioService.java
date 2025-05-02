@@ -5,14 +5,14 @@ import com.kiago.api.dtos.UsuarioDTO;
 import com.kiago.api.entities.Company;
 import com.kiago.api.entities.Usuario;
 import com.kiago.api.repositories.IUsuarioRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UsuarioService {
@@ -26,28 +26,38 @@ public class UsuarioService {
     }
 
 
-    public List<Usuario> getAllUsers() {
-        return userRepository.findAll();
+    public ResponseEntity<List<Usuario>> getAllUsers() {
+        List<Usuario> users = userRepository.findAll();
+        return ResponseEntity.ok(users);
     }
 
-    public Optional<Usuario> getUserById(Long id) {
-        return userRepository.findById(id);
+    public ResponseEntity<Usuario> getUserById(Long id) {
+        Usuario user =  userRepository.findById(id).orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Usuario con id " + id + " no encontrado"));
+        return ResponseEntity.ok(user);
     }
 
-    public Optional<Usuario> getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
+    public ResponseEntity<?> getUserByEmail(String email) {
+        if(!userRepository.existsByEmail(email)) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El email " + email + " no existe");
+        Usuario user = userRepository.findByEmail(email);
+        return ResponseEntity.ok(user);
     }
 
     public ResponseEntity<?> createUser(UsuarioDTO userDTO) {
 
-        Usuario u = new Usuario(userDTO.getName(),userDTO.getEmail(),userDTO.getPassword());
+        if(userRepository.existsByEmail(userDTO.getEmail()) ) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El usuario ya existe");
+        Usuario u = modelMapper.map(userDTO, Usuario.class);
 
         userRepository.save(u);
         return ResponseEntity.ok("Usuario creado con exito");
     }
 
-    public void deleteUser(Long id) {
+    public ResponseEntity<?> deleteUser(Long id) {
+        if(!userRepository.existsById(id)) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El usuario no existe");
+
         userRepository.deleteById(id);
+        return ResponseEntity.ok("Usuario eliminado correctamenete");
+
     }
 
     /*public ResponseEntity<?> updateUser(Long id,UsuarioDTO userDetails) {
@@ -59,14 +69,16 @@ public class UsuarioService {
         return null;
     }*/
     public ResponseEntity<?> updateUser(Long id, UsuarioDTO userDetails) {
+        if(!userRepository.existsById(id)) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El usuario no existe");
 
-        return userRepository.findById(id).map(user -> {
-            user.setName(userDetails.getName());
-            user.setEmail(userDetails.getEmail());
-            user.setPassword(userDetails.getPassword());
-            userRepository.save(user);
-            return ResponseEntity.ok("A editado el usuario correctamente.");
-        }).orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con id: " + id));
+        Usuario usuario = userRepository.findById(id).orElseThrow();
+        usuario.setId(id);
+        usuario.setName(userDetails.getName());
+        usuario.getUpdatedAt();
+        usuario.setEmail(userDetails.getEmail());
+        usuario.setPassword(userDetails.getPassword());
+
+        return ResponseEntity.ok("Usuario editado correctamente");
 
     }
 
@@ -74,9 +86,7 @@ public class UsuarioService {
     public void addCompany (Long userId, CompanyDTO companyDTO){
 
         Company company = modelMapper.map(companyDTO, Company.class);
-
         Usuario u = userRepository.findById(userId).orElseThrow();
-
         u.setCompany(company);
 
     }

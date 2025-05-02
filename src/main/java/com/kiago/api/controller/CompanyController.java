@@ -1,7 +1,10 @@
 package com.kiago.api.controller;
 
+import com.kiago.api.dtos.CompanyDTO;
 import com.kiago.api.entities.Company;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.kiago.api.service.CompanyService;
 
@@ -15,28 +18,31 @@ public class CompanyController {
     @Autowired
     private CompanyService companyService;
 
+    public CompanyController(CompanyService companyService) {
+        this.companyService = companyService;
+    }
     @GetMapping
-    public List<Company> getAllCompanies() {
+    public ResponseEntity<?> getAllCompanies() {
         return companyService.getAllCompanies();
     }
 
     @GetMapping("/{id}")
-    public Optional<Company> getCompanyById(@PathVariable Long id) {
+    public ResponseEntity<?> getCompanyById(@PathVariable Long id) {
         return companyService.getCompanyById(id);
     }
 
     @PostMapping
-    public Company createCompany(@RequestBody Company company) {
-        return companyService.createCompany(company);
-    }
-
-    @DeleteMapping("/{id}")
-    public void deleteCompany(@PathVariable Long id) {
-        companyService.deleteCompany(id);
+    public ResponseEntity<?> createCompany(@RequestBody CompanyDTO companyDTO) {
+        return companyService.createCompany(companyDTO);
     }
 
     @PutMapping("/{id}")
-    public Company updateCompany(@PathVariable Long id, @RequestBody Company companyDetails) {
-        return companyService.updateCompany(id, companyDetails);
+    public ResponseEntity<?> updateCompany(@PathVariable Long id, @RequestBody CompanyDTO companyDTO) {
+        return companyService.updateCompany(id, companyDTO);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteCompany(@PathVariable Long id) {
+        return companyService.deleteCompany(id);
     }
 }

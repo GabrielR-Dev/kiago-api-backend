@@ -18,17 +18,18 @@ public class UsuarioController {
     private UsuarioService userService;
 
     @GetMapping
-    public List<Usuario> getAllUsers() {
+    public ResponseEntity<?> getAllUsers() {
+
         return userService.getAllUsers();
     }
 
     @GetMapping("/{id}")
-    public Optional<Usuario> getUserById(@PathVariable Long id) {
+    public ResponseEntity<?> getUserById(@PathVariable Long id) {
         return userService.getUserById(id);
-    }
 
+    }
     @GetMapping("/email/{email}")
-    public Optional<Usuario> getUserByEmail(@PathVariable String email) {
+    public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
         return userService.getUserByEmail(email);
     }
 
@@ -38,8 +39,8 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        return userService.deleteUser(id);
     }
 
     @PutMapping("/{id}")

@@ -9,11 +9,15 @@ import com.kiago.api.repositories.IPlaceRepository;
 import com.kiago.api.repositories.IUsuarioRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletionException;
+import java.util.stream.Collectors;
 
 @Service
 public class CommentService {
@@ -32,48 +36,51 @@ public class CommentService {
     }
 
 
-    public List<Comment> getAllComments() {
-        return commentRepository.findAll();
+    public ResponseEntity<?> getAllComments() {
+        List<Comment> comments = commentRepository.findAll();
+        List<CommentDTO> commentsDTO = comments.stream()
+                .map(comment -> modelMapper.map(comment, CommentDTO.class))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(commentsDTO);
     }
 
-    public Optional<Comment> getCommentById(Long id) {
-        return commentRepository.findById(id);
+    public ResponseEntity<?> getCommentById(Long id) {
+
+
+        if(!usuarioRepository.existsById(id)) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El usuario con el id " + id + " no existe");
+
+        Comment comentario = commentRepository.findById(id).orElseThrow();
+        CommentDTO commentDTO = modelMapper.map(comentario, CommentDTO.class);
+        return ResponseEntity.ok(commentDTO);
     }
 
-    public Comment createComment(Comment comment) {
-        return commentRepository.save(comment);
+
+    public ResponseEntity<?> createComment(CommentDTO commentDTO) {
+
+        if (commentDTO.getPlaceId() == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No hay un lugar registrado");
+        if(commentDTO.getUserId() == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("El usuario no esta registrado");
+
+        Comment comment = modelMapper.map(commentDTO, Comment.class);
+        commentRepository.save(comment);
+        return ResponseEntity.ok("Comentario agregado");
     }
 
-    public void deleteComment(Long id) {
+    public ResponseEntity<?> deleteComment(Long id) {
+
+
+        List<Comment> commentsUser = commentRepository.findAllByUserId(11l);
+        boolean exists = commentsUser.stream()
+                .anyMatch(c -> c.getId().equals(id));
+
+
+        if(!exists) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El comentario con el id "+id+" no existe");
+        Comment comment = commentRepository.getReferenceById(id);
+        //Ver si al id del usuario conectado le pertenece el comentario para poder borrarlo
+        //if (comment.getUser().getId() == id)
+
         commentRepository.deleteById(id);
+        return ResponseEntity.ok("Comentario eliminado");
     }
 
-    public void updateComment(Long id, CommentDTO commentDetails) {
-        Comment comment = commentRepository.findById(id).orElseThrow(() -> new RuntimeException("Comentario no encontrado"));
-        Usuario user = usuarioRepository.getReferenceById(commentDetails.getUserId());
-        Place place = placeRepository.getReferenceById(commentDetails.getPlaceId());
-
-        try {
-
-            /*Comment c = new Comment(
-                    comment.getId(),
-                    place,
-                    user,
-                    commentDetails.getComment(),
-                    commentDetails.getRating()
-            );*/
-            System.out.println(comment.getId());
-
-
-
-            //commentRepository.save(c);
-
-
-        }catch (RuntimeException e){
-
-        }
-
-
-
-    }
 }

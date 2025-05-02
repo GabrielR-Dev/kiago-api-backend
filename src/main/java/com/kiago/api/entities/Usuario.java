@@ -13,7 +13,6 @@ import java.util.List;
 @Table(name = "users")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 public class Usuario {
 
@@ -47,8 +46,29 @@ public class Usuario {
         this.password = password;
     }
 
+    public Usuario(Long id, String name, String email, String password, List<Place> createdPlaces, Company company) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.createdPlaces = createdPlaces;
+        this.company = company;
+    }
+
+    public Usuario(Long id, String name, String email, String password, LocalDateTime createdAt, LocalDateTime updatedAt, List<Place> createdPlaces, Company company) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.createdPlaces = createdPlaces;
+        this.company = company;
+    }
+
     public Usuario() {
     }
+
 
     public Long getId() {
         return id;
@@ -88,5 +108,13 @@ public class Usuario {
 
     public void setCompany(Company company) {
         this.company = company;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public List<Place> getCreatedPlaces() {
+        return createdPlaces;
     }
 }
