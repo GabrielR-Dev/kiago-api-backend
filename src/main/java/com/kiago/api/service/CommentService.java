@@ -46,6 +46,14 @@ public class CommentService {
 
         return ResponseEntity.ok(commentsDTO);
     }
+    public ResponseEntity<?> getAllCommentsByPlace(Long placeId) {
+        List<Comment> comments = commentRepository.findAllByPlaceId(placeId);
+        List<CommentDTO> commentsDTO = comments.stream()
+                .map(comment -> modelMapper.map(comment, CommentDTO.class))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(commentsDTO);
+    }
 
     public ResponseEntity<?> getCommentById(Long id) {
 
