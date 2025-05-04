@@ -34,8 +34,8 @@ public class Comment {
     @JoinColumn(name = "place_id")
     private Place place;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private Usuario user;
 
 

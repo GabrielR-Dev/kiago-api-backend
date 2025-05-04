@@ -11,7 +11,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -56,28 +58,39 @@ public class CommentService {
     }
 
 
-    public ResponseEntity<?> createComment(CommentDTO commentDTO) {
+    public ResponseEntity<?> createComment(CommentDTO commentDTO, Long idPlace) {
 
-        if (commentDTO.getPlaceId() == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No hay un lugar registrado");
-        if(commentDTO.getUserId() == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("El usuario no esta registrado");
+        String usuarioContext = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario usuarioConnect = usuarioRepository.findByEmail(usuarioContext).orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Usuario no registrado"));
+
+        Place place = placeRepository.findById(idPlace).orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "No puedes agregar un comentario a este lugar"));
+
+        if(usuarioConnect == place.getCreatedBy()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No puedes agregar un comentario en este lugar");
 
         Comment comment = modelMapper.map(commentDTO, Comment.class);
+        comment.setPlace(place);
+        comment.setUser(usuarioConnect);
         commentRepository.save(comment);
         return ResponseEntity.ok("Comentario agregado");
     }
 
     public ResponseEntity<?> deleteComment(Long id) {
+        String usuarioContext = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario usuarioConnect = usuarioRepository.findByEmail(usuarioContext).orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Usuario no registrado"));
+
+        Comment comment = commentRepository.findById(id).orElseThrow(()->  new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "El comentario no existe"));
+
+        //List<Comment> commentsUser = commentRepository.findAllByUserId(usuarioConnect.getId());
+        //boolean exists = commentsUser.stream()
+        //        .anyMatch(c -> c.getId().equals(id));
 
 
-        List<Comment> commentsUser = commentRepository.findAllByUserId(11l);
-        boolean exists = commentsUser.stream()
-                .anyMatch(c -> c.getId().equals(id));
-
-
-        if(!exists) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El comentario con el id "+id+" no existe");
-        Comment comment = commentRepository.getReferenceById(id);
-        //Ver si al id del usuario conectado le pertenece el comentario para poder borrarlo
-        //if (comment.getUser().getId() == id)
+        if (!comment.getUser().getId().equals(usuarioConnect.getId()))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No tienes acceso para borrar este comentario");
 
         commentRepository.deleteById(id);
         return ResponseEntity.ok("Comentario eliminado");

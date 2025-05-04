@@ -3,13 +3,17 @@ package com.kiago.api.service;
 import com.kiago.api.dtos.PhotoDTO;
 import com.kiago.api.entities.Photo;
 import com.kiago.api.entities.Place;
+import com.kiago.api.entities.Usuario;
 import com.kiago.api.repositories.IPhotoRepository;
 import com.kiago.api.repositories.IPlaceRepository;
+import com.kiago.api.repositories.IUsuarioRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +26,8 @@ public class PhotoService {
 
     @Autowired
     private IPlaceRepository placeRepository;
+    @Autowired
+    private IUsuarioRepository usuarioRepository;
 
     private final ModelMapper modelMapper;
 
@@ -68,14 +74,18 @@ public class PhotoService {
 
     }
 
-    public ResponseEntity<?> createPhoto(PhotoDTO photoDTO) {
-        Optional<Place> placeOptional = placeRepository.findById(photoDTO.getPlaceId());
-        if (!placeOptional.isPresent()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El lugar con el id " + photoDTO.getPlaceId() + " no existe");
-        }
+    public ResponseEntity<?> addPhoto(PhotoDTO photoDTO, Long idPlace) {
+
+        String usuarioContext = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario usuarioConnect = usuarioRepository.findByEmail(usuarioContext).orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Usuario no registrado"));
+
+        Place place = placeRepository.findById(idPlace).orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "El lugar no existe"));
+        if(usuarioConnect != place.getCreatedBy()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No puedes agregar una foto a este Lugar");
 
         Photo photo = modelMapper.map(photoDTO, Photo.class);
-        photo.setPlace(placeOptional.get());
+        photo.setPlace(place);
         Photo savedPhoto = photoRepository.save(photo);
 
         PhotoDTO savedPhotoDTO = modelMapper.map(savedPhoto, PhotoDTO.class);
@@ -86,6 +96,11 @@ public class PhotoService {
 
 
     public ResponseEntity<?> deletePhoto(Long id) {
+
+        Photo photo = photoRepository.findById(id).orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "La foto no existe"));
+
+
         Optional<Photo> photoOptional = photoRepository.findById(id);
         if (!photoOptional.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Foto con el id " + id + " no encontrado");

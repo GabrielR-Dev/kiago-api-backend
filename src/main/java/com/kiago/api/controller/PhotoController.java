@@ -29,9 +29,9 @@ public class PhotoController {
         return photoService.getPhotoById(id);
     }
 
-    @PostMapping
-    public ResponseEntity<?> createPhoto(@Valid @RequestBody PhotoDTO photoDTO) {
-        return photoService.createPhoto(photoDTO);
+    @PostMapping("/{idPlace}")
+    public ResponseEntity<?> addPhoto(@Valid @RequestBody PhotoDTO photoDTO,@PathVariable Long idPlace) {
+        return photoService.addPhoto(photoDTO,idPlace);
     }
 
     @GetMapping("/place/{place}")

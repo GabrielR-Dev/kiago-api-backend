@@ -7,16 +7,12 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Getter @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class CommentDTO {
 
     private Long id;
 
-    @NotNull(message = "Debe estar asociado a un lugar")
     private Long placeId;
 
-    @NotNull(message = "Debe estar asociado a un usuario")
     private Long userId;
 
     @NotBlank(message = "El comentario no puede estar vacío")
@@ -27,6 +23,13 @@ public class CommentDTO {
     @Max(value = 5, message = "La calificación máxima es 5")
     private Integer rating;
 
+    public CommentDTO() {
+    }
+
+    public CommentDTO(String comment, Integer rating) {
+        this.comment = comment;
+        this.rating = rating;
+    }
 
     //Getters and Setters
     public Long getId() {

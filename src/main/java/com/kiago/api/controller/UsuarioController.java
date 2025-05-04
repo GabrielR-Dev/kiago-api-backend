@@ -17,7 +17,7 @@ public class UsuarioController {
     @Autowired
     private UsuarioService userService;
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<?> getAllUsers() {
 
         return userService.getAllUsers();
@@ -33,7 +33,7 @@ public class UsuarioController {
         return userService.getUserByEmail(email);
     }
 
-    @PostMapping
+    @PostMapping("/auth")
     public ResponseEntity<?> createUser(@RequestBody UsuarioDTO user) {
         return userService.createUser(user);
     }
@@ -44,7 +44,7 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UsuarioDTO userDetails) {
-        return userService.updateUser(id, userDetails);
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UsuarioDTO userDTO) {
+        return userService.updateUser(id, userDTO);
     }
 }

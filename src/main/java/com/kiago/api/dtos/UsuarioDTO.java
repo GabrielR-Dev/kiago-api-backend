@@ -5,11 +5,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class UsuarioDTO {
 
 
@@ -26,10 +26,12 @@ public class UsuarioDTO {
     @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
     private String password;
 
-    public UsuarioDTO(String name, String email, String password) {
+    public UsuarioDTO() {
+    }
+
+    public UsuarioDTO(String name, String email) {
         this.name = name;
         this.email = email;
-        this.password = password;
     }
 
     public String getName() {
@@ -40,16 +42,20 @@ public class UsuarioDTO {
         return email;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
     public void setId(Long id) {
         this.id = id;
     }
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getPassword() {
+        return password;
     }
 
     public void setEmail(String email) {

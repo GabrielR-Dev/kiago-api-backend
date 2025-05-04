@@ -15,6 +15,11 @@ public class CompanyDTO {
 
     private String description;
 
+    public CompanyDTO() {
+    }
+
+
+
     public String getDescription() {
         return description;
     }

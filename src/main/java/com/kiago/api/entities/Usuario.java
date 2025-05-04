@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -13,7 +16,6 @@ import java.util.List;
 @Table(name = "users")
 @Getter
 @Setter
-@AllArgsConstructor
 public class Usuario {
 
     @Id
@@ -40,10 +42,14 @@ public class Usuario {
     @JoinColumn(name = "company_id")
     private Company company;
 
+
+
     public Usuario(String name, String email, String password) {
         this.name = name;
         this.email = email;
         this.password = password;
+
+
     }
 
     public Usuario(Long id, String name, String email, String password, List<Place> createdPlaces, Company company) {
@@ -91,6 +97,7 @@ public class Usuario {
     }
 
     public void setPassword(String password) {
+
         this.password = password;
     }
 

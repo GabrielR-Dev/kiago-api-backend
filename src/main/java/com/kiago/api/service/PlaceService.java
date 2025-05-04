@@ -12,7 +12,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +22,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class PlaceService implements Permission<Place> {
+public class PlaceService{
 
 
     @Autowired
@@ -63,8 +65,10 @@ public class PlaceService implements Permission<Place> {
     }
 
     public ResponseEntity<?> createPlace(PlaceDTO placeDTO) {
-        // Buscar usuario (por ahora fijo en 15L) si no tiene un usuario da error
-        Usuario usuario = usuarioRepository.getReferenceById(15l);
+        // Creamos el usuario que esta conectado para guardarlo en el place
+        String usuarioConnct = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario usuario = usuarioRepository.findByEmail(usuarioConnct).orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Usuario no registrado"));
 
         // Mapear el DTO a entidad
         Place place = modelMapper.map(placeDTO, Place.class);
@@ -87,13 +91,16 @@ public class PlaceService implements Permission<Place> {
     }
 
     public ResponseEntity<?> updatePlace(Long id, PlaceDTO placeDTO) {
+        // Validacion para verificar que sea el usuario conectado
+        String usuarioContext = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario usuarioConnect = usuarioRepository.findByEmail(usuarioContext).orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Usuario no registrado"));
 
         if(!placeRepository.existsById(id)) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Este id del lugar no esta registrado");
+        if (usuarioConnect.getId() != id) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No tienes acceso para modificar este usuario");
+
 
         Place place = placeRepository.getReferenceById(id);
-
-        //se debe comparar si el usuario conectado le pertenece o fue el que creo este Place
-        //if(place.getCreatedBy().getId() != id) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No puedes editar este Lugar");
 
         if(placeDTO.getName() != null) place.setName(placeDTO.getName());
         if(placeDTO.getAddress() != null)place.setAddress(placeDTO.getAddress());
@@ -111,16 +118,20 @@ public class PlaceService implements Permission<Place> {
     }
 
     public ResponseEntity<?> deletePlace(Long id) {
-        if (placeRepository.existsById(id)) {
+        // Validacion para verificar que sea el usuario conectado
+        String usuarioContext = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario usuarioConnect = usuarioRepository.findByEmail(usuarioContext).orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "Usuario no registrado"));
+
+        Place place = placeRepository.findById(id).orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "El lugar no existe"));
+
+        if (place.getCreatedBy() == usuarioConnect){
             placeRepository.deleteById(id);
             return ResponseEntity.ok("Lugar borrado correctamente");
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("EL lugar con el id " + id + "no existe");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No tienes acceso para borrar este lugar");
         }
     }
 
-    @Override
-    public boolean authorizeAction(Place recurso, Usuario usuario) {
-        return false;
-    }
 }

@@ -28,9 +28,9 @@ public class CommentController {
         return commentService.getCommentById(id);
     }
 
-    @PostMapping
-    public ResponseEntity<?> createComment(@Valid @RequestBody CommentDTO commentDTO) {
-        return commentService.createComment(commentDTO);
+    @PostMapping("/{placeId}")
+    public ResponseEntity<?> createComment(@Valid @RequestBody CommentDTO commentDTO, @PathVariable Long placeId) {
+        return commentService.createComment(commentDTO,placeId);
     }
 
 
